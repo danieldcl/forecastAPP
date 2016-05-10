@@ -1,5 +1,6 @@
 import Tkinter as tk
 import ttk
+import tkFileDialog
 import matplotlib
 matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
@@ -8,34 +9,60 @@ import matplotlib.animation as animation
 from matplotlib import style
 import pandas as pd
 import numpy as np
-from tkFileDialog import askopenfilename
 import csv
 
-"""global variables"""
 
+"""global variables"""
 LARGE_FONT = ("Verdana", 12)
 NORM_FONT = ("Verdana", 10)
 SMALL_FONT = ("Verdana", 8)
+final_predictions={}
+data_file_path=''
+time_frame=7
 
 style.use("ggplot")
-
 f = Figure()
 a = f.add_subplot(111)
 
-final_predictions={}
-data_file_path=''
 
 """global funtions"""
+def tutorial():
+    tut = tk.Tk()
+    tut.wm_title("Tutorial")
+    label = ttk.Label(tut, text="Overview of the application", font=NORM_FONT)
+    label.pack(side="top", fill="x", pady=10)
+    B1 = ttk.Button(tut, text="Close", command=tut.destroy)
+    B1.pack()
 
-def OpenFile():
-    filename = askopenfilename(filetypes=[('csv file', '.csv')])
-    if filename:
-        data_file_path = filename
+def changeTimeFrame():
+    global time_frame
+    tfFrame = tk.Tk()
+    tfFrame.geometry("640x360")
+    tfFrame.wm_title("Number of days?")
+    label = ttk.Label(tfFrame, text = "Enter the number of days to forecast")
+    label.pack(side="top", fill="x", pady=10)
+    ent = ttk.Entry(tfFrame)
+    ent.insert(0, 7)
+    ent.pack()
+    ent.focus_set()
 
-def Get_Attributes(filepath):
-    with open(filepath, 'r') as fi:
-        reader = pd.read_csv(fi)
-        return list(reader.columns)
+    def callback():
+        time_frame = int(ent.get())
+        tfFrame.destroy()
+
+    b = ttk.Button(tfFrame, text="submit", width=10, command = callback)
+    b.pack()
+    tk.mainloop()
+
+
+
+def Get_Attributes(filename):
+    try:
+        with open(filename, 'r') as fi:
+            reader = pd.read_csv(fi)
+            return list(reader.columns)
+    except:
+        print "file not imported yet"
 
 def popupmsg(msg):
     popup = tk.Tk()
@@ -45,6 +72,7 @@ def popupmsg(msg):
     B1 = ttk.Button(popup, text="Okay", command = popup.destroy)
     B1.pack()
     popup.mainloop()
+
 
 def animate(i):
     pullData = open("sampledata.txt", "r").read()
@@ -63,6 +91,14 @@ def animate(i):
     temp_title="Temperary Title"
     a.set_title(temp_title)
 
+def assignFilePath(filename):
+    global data_file_path
+    data_file_path = filename
+
+def print_data_path():
+    global data_file_path
+    print data_file_path
+
 
 """class definitions"""
 class ForecastApp(tk.Tk):
@@ -76,26 +112,18 @@ class ForecastApp(tk.Tk):
 
         menubar = tk.Menu(container)
         filemenu = tk.Menu(menubar, tearoff=0)
-        filemenu.add_command(label="Load Data File", command =lambda: popupmsg("not supported yet"))
-        filemenu.add_separator()
         filemenu.add_command(label="Exit", command=quit)
         menubar.add_cascade(label="File", menu=filemenu)
 
-        pagemenu = tk.Menu(menubar, tearoff=1)
-        pagemenu.add_command(label="Graph", command = lambda: show_frame(GraphPage))
-        menubar.add_cascade(label="Pages", menu=pagemenu)
-
-        dataTF = tk.Menu(menubar, tearoff=1)
-        dataTF.add_command(label="1 day", command = lambda : changeTimeFrame("1d"))
-        dataTF.add_command(label="3 day", command = lambda : changeTimeFrame("3d"))
-        dataTF.add_command(label="1 week", command = lambda : changeTimeFrame("7d"))
-        menubar.add_cascade(label = "Data Time Frame", menu=dataTF)
+        helpmenu = tk.Menu(menubar, tearoff=0)
+        helpmenu.add_command(label="Tutorial", command= tutorial)
+        menubar.add_cascade(label="Help", menu=helpmenu)
 
         tk.Tk.config(self, menu=menubar)
-
+        self.filename=tk.StringVar()
         self.frames={}
         #update frame page
-        for page in (StartPage, GraphPage, FilePage):
+        for page in (StartPage, GraphPage, FilePage, AttPage):
             frame= page(container, self)
             self.frames[page] = frame
             frame.grid(row=0, column=0, sticky="nsew")
@@ -111,10 +139,11 @@ class ForecastApp(tk.Tk):
 
 class StartPage(tk.Frame):
     def __init__(self, parent, controller):
+        self.controller = controller
         tk.Frame.__init__(self, parent)
         label = tk.Label(self, text=("""Alpha Data Forecast Application \n use at your own risk."""), font=LARGE_FONT)
         label.pack(pady=10, padx=10)
-        botton1 = ttk.Button(self, text="Agree", command=lambda: controller.show_frame(GraphPage))
+        botton1 = ttk.Button(self, text="Agree", command=lambda: controller.show_frame(FilePage))
         botton1.pack()
         botton2 = ttk.Button(self, text="Disagree", command=quit)
         botton2.pack()
@@ -124,6 +153,7 @@ class StartPage(tk.Frame):
 class GraphPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
+        self.controller = controller
         label = tk.Label(self, text="Graph Page!", font=LARGE_FONT)
         label.pack(pady=10, padx=10)
         botton1 = ttk.Button(self, text="Home", command=lambda: controller.show_frame(StartPage))
@@ -143,20 +173,44 @@ class GraphPage(tk.Frame):
 
 class FilePage(tk.Frame):
         def __init__(self, parent, controller):
+            self.controller = controller
             tk.Frame.__init__(self, parent)
-            top_label = ttk.Label(self, text="Attribute Selections", font=LARGE_FONT)
+            top_label = ttk.Label(self, text="Choose Data File", font=LARGE_FONT)
             top_label.pack(pady=10, padx=10)
-            labels=[]
-            # if data_file_path:
-            #     dir_label = ttk.Label(self, text="Your file has these Attributes/Columns: ", font=LARGE_FONT)
-            #     dir_label.pack()
-            #     data_attributes = Get_Attributes(data_file_path)
-            #     for i in data_attributes:
-            #         label[i] = ttk.Label(self, text= data_attributes[i])
-            #         label[i].pack()
-            # if not data_file_path:
-            #     dir_label = ttk.Label(self, text="Import a csv file to start")
-            #     dir_label.pack()
+            self.but = ttk.Button(self, text="Browse", command=self.load_file)
+            self.but.pack()
+
+        def load_file(self):
+            filepath = tkFileDialog.askopenfilename(filetypes=[('CSV Files', '*.csv')])
+            if filepath:
+                self.controller.filename.set(filepath)
+
+                page = AttPage(self,self.controller)
+                page.pack(side="left")
+
+            else:
+                popupmsg("Fail to open file! Make sure your file is in the right format.")
+
+
+
+
+class AttPage(tk.Frame):
+    def __init__(self, parent, controller):
+        # self.controller = controller
+        tk.Frame.__init__(self, parent)
+        self.controller = controller
+        self.label = tk.Label(self, text=("""Select an attribute to predict:"""), font=LARGE_FONT)
+        self.label.pack(pady=10, padx=10)
+        f = self.controller.filename.get()
+        labels=[]
+        if f:
+            atts = Get_Attributes(f)
+            for i in range(len(atts)):
+                self.label[i] = tk.Label(self, text= atts[i], font=LARGE_FONT)
+                self.label[i].pack(pady=10, padx=10)
+
+
+
 
 
 
