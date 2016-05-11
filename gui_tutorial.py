@@ -54,13 +54,18 @@ def changeTimeFrame():
     b.pack()
     tk.mainloop()
 
+def getSizeOfFile(filepath):
+    # this shows the size of the datafile,
+    import os
+    return int(os.path.getsize(filepath))
+
+
 
 
 def Get_Attributes(filename):
     try:
         with open(filename, 'r') as fi:
-            reader = pd.read_csv(fi)
-            return list(reader.columns)
+            return fi.next().split(',')
     except:
         print "file not imported yet"
 
@@ -69,7 +74,7 @@ def popupmsg(msg):
     popup.wm_title("!")
     label = ttk.Label(popup, text=msg, font = NORM_FONT)
     label.pack(side="top", fill="x", pady=10)
-    B1 = ttk.Button(popup, text="Okay", command = popup.destroy)
+    B1 = ttk.Button(popup, text="Okay" )
     B1.pack()
     popup.mainloop()
 
@@ -98,6 +103,10 @@ def assignFilePath(filename):
 def print_data_path():
     global data_file_path
     print data_file_path
+
+
+
+
 
 
 """class definitions"""
@@ -201,16 +210,29 @@ class AttPage(tk.Frame):
         self.controller = controller
         self.label = tk.Label(self, text=("""Select an attribute to predict:"""), font=LARGE_FONT)
         self.label.pack(pady=10, padx=10)
-        f = self.controller.filename.get()
-        labels=[]
-        if f:
-            atts = Get_Attributes(f)
-            for i in range(len(atts)):
-                self.label[i] = tk.Label(self, text= atts[i], font=LARGE_FONT)
-                self.label[i].pack(pady=10, padx=10)
+        fi = self.controller.filename.get()
+        self.radioVar = tk.StringVar()
 
 
+        if fi!='':
+            fsize = getSizeOfFile(fi)
+            if fsize >128000000:
+                label = tk.Label(self, text="File Larger than 128mb, we recommend using xgboost modeling", bg='red', font=LARGE_FONT)
+                label.pack()
+            self.scrollbar = tk.Scrollbar(self)
+            self.scrollbar.pack(side='left', fill='y')
+            self.atts = Get_Attributes(fi)
+            self.myList = tk.Listbox(self, yscrollcommand=self.scrollbar.set)
+            for i in self.atts:
+                self.myList.insert(tk.END, str(i))
+            self.myList.pack(side='left', fill='y')
+            self.scrollbar.config(command= self.myList.yview)
+            self.selectBut = tk.Button(self, text='Next', command=lambda : self.onSelect())
+            self.selectBut.pack(side="bottom")
 
+    def onSelect(self):
+        self.radioVar.set(self.atts[self.myList.curselection()[0]])
+        print self.radioVar.get()
 
 
 
