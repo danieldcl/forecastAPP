@@ -13,12 +13,12 @@ from sklearn import metrics
 import ast
 
 
-def Clean_Data(filename, xvars):
+def Clean_Data(filename, vars):
     # remove redundancy, normalize, and preprocess the data
     # Convert Categorical values into numerical values
     na_values = ['NO CLUE', 'N/A', '']
     df = pd.read_csv(filename, na_values=na_values, parse_dates=True)
-    data = df[xvars]
+    data = df[vars]
     # data = df[xvars]
     data = data.dropna(axis=1, how='all')
     cols = data.columns
@@ -35,9 +35,13 @@ def Clean_Data(filename, xvars):
 def Generate_Prediction(model, f, xvars, yvar):
     xvars = ast.literal_eval(xvars)
     #the system generate the prediction result
+    if yvar not in xvars:
+        xvars.append(yvar)
+
     df = Clean_Data(f, xvars)
-    xvars.remove(yvar)
-    xdata = df[xvars]
+    cols = list(df.columns)
+    cols.remove(yvar)
+    xdata = df[cols]
     ydata = df[yvar]
 
     model= model.lower()
@@ -45,19 +49,19 @@ def Generate_Prediction(model, f, xvars, yvar):
         return xgboost_model(xdata, ydata)
 
     elif model== 'randomforest':
-        model = RandomForestClassifier(n_estimators=100)
-        return classification_model(model, xdata, ydata)
+        m = RandomForestClassifier(n_estimator=10)
+        return Selected_Model(m, xdata, ydata)
 
     elif model== 'decisiontree':
-        model = DecisionTreeClassifier()
-        return classification_model(model, xdata, ydata)
+        m = DecisionTreeClassifier()
+        return Selected_Model(m, xdata, ydata)
 
     elif model== 'linearregression':
-        model = LinearRegression()
-        return LinearRegression_model(model, xdata, ydata)
+        m = LinearRegression()
+        return Selected_Model(m, xdata, ydata)
 
 
-def LinearRegression_model(model, xdata, ydata):
+def Selected_Model(model, xdata, ydata):
     #Generic function for making a classification model and accessing performance:
     x_train, x_test, y_train, y_test = cross_validation.train_test_split(
         xdata, ydata, test_size=0.2, random_state=1)
@@ -68,11 +72,15 @@ def LinearRegression_model(model, xdata, ydata):
     #Make predictions on training set:
     predictions = predicting_model.predict(x_test)
 
-    # return predictions
+    return predictions
 
-    return metrics.classification_report(y_test, predictions)
+    # return metrics.classification_report(y_test, predictions)
     # accuracy = metrics.accuracy_score(y_test, predictions)
     # return accuracy
+
+
+
+
 
 #
 # def ToWeight(y):
@@ -127,8 +135,7 @@ def LinearRegression_model(model, xdata, ydata):
 #
 #     bst1 = xgb.train(plst, dtrain, num_round, evallist, feval=rmspe_xg, verbose_eval=50, early_stopping_rounds=100)
 
-# if __name__=='__main__':
-#     filename = '/home/dc/Desktop/python_gui/citibike.csv'
-#     fcolumns = ['the_geom','tripduration', 'starttime', 'stoptime']
-#     df = Clean_Data(filename, fcolumns)
-#     Generate_Prediction('linearregression', df, df.columns, 'tripduration')
+if __name__=='__main__':
+    filename = '/home/dc/Desktop/python_gui/citibike.csv'
+    fcolumns = ['the_geom','tripduration', 'starttime', 'stoptime']
+    print Generate_Prediction('randomforest', filename, fcolumns, 'tripduration')

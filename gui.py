@@ -249,9 +249,8 @@ class AttPage(tk.Frame):
         xdx = self.xList.curselection()
         if xdx and ydx:
             attributes = []
-            xdx= sorted(ydx+xdx)
             for i in xdx:
-                    attributes.append(self.atts[i])
+                attributes.append(self.atts[i])
             self.controller.xVar.set(attributes)
             self.controller.yVar.set(self.atts[ydx[0]])
             self.controller.show_frame(ModelPage)
@@ -268,7 +267,7 @@ class ModelPage(tk.Frame):
         ttk.Button(self, text='Go Back', command=lambda: controller.show_frame(FilePage)).pack(anchor='nw')
         ttk.Label(self, text="Choose Predicting Model: ", font=LARGE_FONT).pack()
 
-        models = ['xgboost', 'RandomForest', 'LinearRegression']
+        models = ['xgboost', 'DecisionTree','RandomForest', 'LinearRegression']
         for i in models:
             tk.Radiobutton(self, text=i, variable=self.controller.modelVar, value=i, command=self.controller.modelVar.set(i)).pack()
 
