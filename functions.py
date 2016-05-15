@@ -80,62 +80,57 @@ def Selected_Model(model, xdata, ydata):
 
 
 
+def ToWeight(y):
+    w = np.zeros(y.shape, dtype=float)
+    ind = y != 0
+    w[ind] = 1./(y[ind]**2)
+    return w
+def rmspe(yhat, y):
+    w = ToWeight(y)
+    rmspe = np.sqrt(np.mean( w * (y - yhat)**2 ))
+    return rmspe
+def rmspe_xg(yhat, y):
+    # y = y.values
+    y = y.get_label()
+    y = np.exp(y) - 1
+    yhat = np.exp(yhat) - 1
+    w = ToWeight(y)
+    rmspe = np.sqrt(np.mean(w * (y - yhat)**2))
+    return "rmspe", rmspe
+
+def xgboost_model(xdata, ydata):
+    #the system generate the prediction result
+
+    #our system splits the data, and almost  one third are submit to the system as training data.
+    x_train, x_test, y_train, y_test = train_test_split(xdata, ydata,
+                                                    test_size=0.2, random_state=30)
+
+    data = np.random.rand(5,10) # 5 entities, each contains 10 features
+    label = np.random.randint(2, size=5) # binary target
+    dtrain = xgb.DMatrix( data, label=label)
 
 
-#
-# def ToWeight(y):
-#     w = np.zeros(y.shape, dtype=float)
-#     ind = y != 0
-#     w[ind] = 1./(y[ind]**2)
-#     return w
-#
-# def rmspe(yhat, y):
-#     w = ToWeight(y)
-#     rmspe = np.sqrt(np.mean( w * (y - yhat)**2 ))
-#     return rmspe
-#
-# def rmspe_xg(yhat, y):
-#     # y = y.values
-#     y = y.get_label()
-#     y = np.exp(y) - 1
-#     yhat = np.exp(yhat) - 1
-#     w = ToWeight(y)
-#     rmspe = np.sqrt(np.mean(w * (y - yhat)**2))
-#     return "rmspe", rmspe
-#
-#
-# def xgboost_model(xdata ,ydata):
-#     #the system generate the prediction result
-#
-#     #our system splits the data, and almost  one third are submit to the system as training data.
-#     x_train, x_test, y_train, y_test = train_test_split(xdata, ydata,
-#                                                     test_size=0.2, random_state=30)
-#
-#     data = np.random.rand(5,10) # 5 entities, each contains 10 features
-#     label = np.random.randint(2, size=5) # binary target
-#     dtrain = xgb.DMatrix( data, label=label)
-#
-#
-#     dtrain = xgb.DMatrix(x_train, y_train)
-#     dtest = xgb.DMatrix(X_test, y_test)
-#
-#     num_round = 500
-#     evallist = [(dtrain, 'train'), (dtest, 'test')]
-#
-#     param = {'bst:max_depth':12,
-#          'bst:eta':0.0095,
-#          'subsample':0.8,
-#          'colsample_bytree':0.7,
-#          'silent':1,
-#          'objective':'reg:linear',
-#          'nthread':6,
-#          'seed':42}
-#
-#     plst = param.items()
-#
-#     bst1 = xgb.train(plst, dtrain, num_round, evallist, feval=rmspe_xg, verbose_eval=50, early_stopping_rounds=100)
+    dtrain = xgb.DMatrix(x_train, y_train)
+    dtest = xgb.DMatrix(x_test, y_test)
+
+    num_round = 500
+    evallist = [(dtrain, 'train'), (dtest, 'test')]
+
+    param = {'bst:max_depth':12,
+         'bst:eta':0.0095,
+         'subsample':0.8,
+         'colsample_bytree':0.7,
+         'silent':1,
+         'objective':'reg:linear',
+         'nthread':6,
+         'seed':42}
+    plst = param.items()
+    bst1 = xgb.train(plst, dtrain, num_round, evallist, verbose_eval=50, early_stopping_rounds=100)
+    xgb_x_test = xgb.DMatrix(x_test)
+    predictions = bst1.predict(xgb_x_test)
+    return predictions
 
 if __name__=='__main__':
     filename = '/home/dc/Desktop/python_gui/citibike.csv'
     fcolumns = ['the_geom','tripduration', 'starttime', 'stoptime']
-    print Generate_Prediction('randomforest', filename, fcolumns, 'tripduration')
+    print Generate_Prediction('decisiontree', filename, str(fcolumns), 'tripduration')
