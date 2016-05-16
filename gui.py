@@ -14,6 +14,7 @@ import csv
 from functions import *
 import time
 import threading
+import ast
 
 
 """global variables"""
@@ -37,7 +38,7 @@ def animate(i):
     xList = [i+1 for i in range(len(yList))]
     a.clear() #this erases the graph data in a
     a.plot(xList, yList, "#00A3E0")
-    a.legend(bbox_to_anchor=(0,1.02), loc=3, ncol=2,borderaxespad=0)
+    # a.legend(bbox_to_anchor=(0,1.02), loc=3, ncol=2,borderaxespad=0)
     temp_title="Predictions"
     a.set_title(temp_title)
 
@@ -142,8 +143,8 @@ class GraphPage(tk.Frame):
         self.controller = controller
         label = tk.Label(self, textvariable=self.controller.yVar, text=self.controller.yVar.get() , font=LARGE_FONT)
         label.pack(pady=10, padx=10)
-        botton1 = ttk.Button(self, text="Select Attributes", command=lambda: controller.show_frame(FilePage))
-        botton1.pack()
+        ttk.Button(self, text="Select Model", command=lambda: controller.show_frame(ModelPage)).pack(anchor='nw')
+        ttk.Button(self, text="File Page", command=lambda: controller.show_frame(FilePage)).pack(anchor='nw')
 
 
         """important!! this is how the graph was drawn"""
@@ -316,5 +317,5 @@ class ResultPage(tk.Frame):
 
 app = ForecastApp()
 app.geometry("960x720")
-ani = animation.FuncAnimation(f, animate) #adding data to graph live
+ani = animation.FuncAnimation(f, animate, interval=5000) #adding data to graph live
 app.mainloop()
