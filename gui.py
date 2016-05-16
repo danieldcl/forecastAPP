@@ -303,7 +303,7 @@ class ModelPage(tk.Frame):
         ttk.Entry(self, textvariable=self.controller.num, width=5).pack()
 
         self.ToCleanPage = ttk.Button(self, text='Next', state=tk.DISABLED, command=lambda: self.controller.show_frame(CleaningPage))
-        self.ToCleanPage.pack()
+        self.ToCleanPage.pack(side='top')
 
     def validate_num(self, name, index, mode):
         try:
