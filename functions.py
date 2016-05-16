@@ -37,34 +37,36 @@ def Generate_Prediction(model, filename, xvars, yvar, num):
     #the system generate the prediction result
     if yvar not in xvars:
         xvars.append(yvar)
-
     df = Clean_Data(filename, xvars)
-    cols = list(df.columns)
-    cols.remove(yvar)
-    xdata = df[cols]
-    ydata = df[yvar]
+    try:
+        cols = list(df.columns)
+        cols.remove(yvar)
+        xdata = df[cols]
+        ydata = df[yvar]
 
-    model= model.lower()
-    if model== 'xgboost':
-        return xgboost_model(xdata, ydata, num)
+        model= model.lower()
+        if model== 'xgboost':
+            return xgboost_model(xdata, ydata, num)
 
-    elif model== 'randomforest':
-        m = RandomForestClassifier(n_estimators=10)
-        return Selected_Model(m, xdata, ydata, num)
+        elif model== 'randomforest':
+            m = RandomForestClassifier(n_estimators=10)
+            return Selected_Model(m, xdata, ydata, num)
 
-    elif model== 'decisiontree':
-        m = DecisionTreeClassifier()
-        return Selected_Model(m, xdata, ydata, num)
+        elif model== 'decisiontree':
+            m = DecisionTreeClassifier()
+            return Selected_Model(m, xdata, ydata, num)
 
-    elif model== 'linearregression':
-        m = LinearRegression()
-        return Selected_Model(m, xdata, ydata, num)
+        elif model== 'linearregression':
+            m = LinearRegression()
+            return Selected_Model(m, xdata, ydata, num)
+    except TypeError:
+        return 0
 
 
 def Selected_Model(model, xdata, ydata, num):
     #Generic function for making a classification model and accessing performance:
     x_train, x_test, y_train, y_test = cross_validation.train_test_split(
-        xdata, ydata, test_size=0.2, random_state=1)
+        xdata, ydata, test_size=0.2, random_state=20)
 
     #Fit the model:
     predicting_model = model.fit(x_train,y_train)
@@ -103,7 +105,7 @@ def xgboost_model(xdata, ydata, num):
 
     #our system splits the data, and almost  one third are submit to the system as training data.
     x_train, x_test, y_train, y_test = train_test_split(xdata, ydata,
-                                                    test_size=0.25, random_state=10)
+                                                    test_size=0.25, random_state=30)
 
     data = np.random.rand(5,10) # 5 entities, each contains 10 features
     label = np.random.randint(2, size=5) # binary target

@@ -21,10 +21,30 @@ LARGE_FONT = ("Verdana", 12)
 NORM_FONT = ("Verdana", 10)
 SMALL_FONT = ("Verdana", 8)
 style.use("ggplot")
+f = Figure()
+a = f.add_subplot(111)
 
 
 
 """global funtions"""
+
+def animate(i):
+    with open("predictions.txt", "r") as fi:
+        yList = []
+        for eachLine in fi:
+            yList.append(float(eachLine))
+
+    xList = [i+1 for i in range(len(yList))]
+    a.clear() #this erases the graph data in a
+    a.plot(xList, yList, "#00A3E0")
+    a.legend(bbox_to_anchor=(0,1.02), loc=3, ncol=2,borderaxespad=0)
+    temp_title="Predictions"
+    a.set_title(temp_title)
+
+
+
+
+
 def tutorial():
     tut = tk.Tk()
     tut.wm_title("Tutorial")
@@ -122,15 +142,13 @@ class GraphPage(tk.Frame):
         self.controller = controller
         label = tk.Label(self, textvariable=self.controller.yVar, text=self.controller.yVar.get() , font=LARGE_FONT)
         label.pack(pady=10, padx=10)
-        botton1 = ttk.Button(self, text="Select Attributes", command=lambda: controller.show_frame(AttPage))
+        botton1 = ttk.Button(self, text="Select Attributes", command=lambda: controller.show_frame(FilePage))
         botton1.pack()
-        self.f = Figure()
-        self.a = self.f.add_subplot(111)
 
 
         """important!! this is how the graph was drawn"""
 
-        canvas = FigureCanvasTkAgg(self.f,self)
+        canvas = FigureCanvasTkAgg(f,self)
         canvas.show()
         toolbar = NavigationToolbar2TkAgg(canvas, self)
         toolbar.update()
@@ -138,24 +156,8 @@ class GraphPage(tk.Frame):
         canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
         """"""
-        ani = animation.FuncAnimation(self.f, self.animate, interval=5000) #adding data to graph live
 
-    def animate(self, i):
-        pullData = open("sampledata.txt", "r").read()
-        dataList = pullData.split('\n')
-        xList = []
-        xList = []
-        for eachLine in dataList:
-            if len(eachLine)>1:
-                x, y = eachLine.split(',')
-                xList.append(int(x))
-                xList.append(int(y))
 
-        self.a.clear() #this erases the graph data in a
-        self.a.plot(xList, xList, "#00A3E0", label="random data")
-        self.a.legend(bbox_to_anchor=(0,1.02), loc=3, ncol=2,borderaxespad=0)
-        temp_title="Predictions"
-        self.a.set_title(temp_title)
 
 
 class FilePage(tk.Frame):
@@ -264,6 +266,11 @@ class CleaningPage(tk.Frame):
         try:
             predicted_results = Generate_Prediction(self.controller.modelVar.get(), \
                 self.controller.filename.get(), self.controller.xVar.get(), self.controller.yVar.get(), int(self.controller.num.get()))
+
+            with open('predictions.txt', 'w+') as fi:
+                for i in predicted_results.tolist():
+                    fi.write(str(i) + '\n')
+
             self.controller.predictions.set(predicted_results.tolist())
         except IndexError:
             popupmsg("An error occurred during data cleaning.")
@@ -307,10 +314,7 @@ class ResultPage(tk.Frame):
         ttk.Label(self, textvariable=self.controller.predictions, font=LARGE_FONT).pack()
 
 
-
-
-
-
 app = ForecastApp()
 app.geometry("960x720")
+ani = animation.FuncAnimation(f, animate) #adding data to graph live
 app.mainloop()
