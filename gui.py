@@ -43,13 +43,21 @@ def animate(i):
     a.set_title(temp_title)
 
 
-
-
+tutorialmessage = """Overview of the application:\n
+Our program works best for numerical data analysis.\n
+1: select dependent attribute and independent attributes.\n
+2: pick a predicting model and specify the number of predictions.\n
+3: run prediction \n
+Each predicting model works differently.\n
+XGBoost: accurate, moderate to long.\n
+DecisionTree: moderate.\n
+RandomForest: slow, memory eager.\n
+LinearRegression: fast, best for linear data.\n"""
 
 def tutorial():
     tut = tk.Tk()
-    tut.wm_title("Tutorial")
-    label = ttk.Label(tut, text="Overview of the application", font=NORM_FONT)
+    tut.wm_title("About/How")
+    label = ttk.Label(tut, text=tutorialmessage, font=NORM_FONT)
     label.pack(side="top", fill="x", pady=10)
     B1 = ttk.Button(tut, text="Close", command=tut.destroy)
     B1.pack()
@@ -244,7 +252,8 @@ class CleaningPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
-        ttk.Label(self, text='This will take some time base on the side of the data! ', font=LARGE_FONT).place(relx=.5, rely=.4, anchor='c')
+        ttk.Button(self, text='Go Back', command=lambda: controller.show_frame(FilePage)).pack(anchor='nw')
+        ttk.Label(self, text='This will take some time base on the side of the data and the model! ', font=LARGE_FONT).place(relx=.5, rely=.4, anchor='c')
         self.progressbar = ttk.Progressbar(self, orient='horizontal', length=300, mode='indeterminate')
         self.progressbar.place(relx=.5, rely=.5, anchor='c')
         ttk.Button(self, text='Confirm and Run', command=self.apply).place(relx=.5, rely=.45, anchor='c')
