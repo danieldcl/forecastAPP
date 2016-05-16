@@ -49,7 +49,7 @@ def Generate_Prediction(model, f, xvars, yvar):
         return xgboost_model(xdata, ydata)
 
     elif model== 'randomforest':
-        m = RandomForestClassifier(n_estimator=10)
+        m = RandomForestClassifier(n_estimators=10)
         return Selected_Model(m, xdata, ydata)
 
     elif model== 'decisiontree':
@@ -125,12 +125,12 @@ def xgboost_model(xdata, ydata):
          'nthread':6,
          'seed':42}
     plst = param.items()
-    bst1 = xgb.train(plst, dtrain, num_round, evallist, verbose_eval=50, early_stopping_rounds=100)
+    bst1 = xgb.train(plst, dtrain, num_round, evallist, verbose_eval=50, early_stopping_rounds=200)
     xgb_x_test = xgb.DMatrix(x_test)
     predictions = bst1.predict(xgb_x_test)
     return predictions
 
 if __name__=='__main__':
-    filename = '/home/dc/Desktop/python_gui/citibike.csv'
+    filename = 'citibike.csv'
     fcolumns = ['the_geom','tripduration', 'starttime', 'stoptime']
-    print Generate_Prediction('decisiontree', filename, str(fcolumns), 'tripduration')
+    print Generate_Prediction('xgboost', filename, str(fcolumns), 'tripduration')

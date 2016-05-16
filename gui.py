@@ -1,4 +1,7 @@
-import Tkinter as tk
+try:
+    import Tkinter as tk
+except ImportError:
+    import tkinter as tk
 import ttk
 import tkFileDialog
 import matplotlib
@@ -9,7 +12,8 @@ import matplotlib.animation as animation
 from matplotlib import style
 import csv
 from functions import *
-from numpy import array
+import time
+import threading
 
 
 """global variables"""
@@ -126,10 +130,12 @@ class ForecastApp(tk.Tk):
         self.yVar = tk.StringVar()
         self.xVar = tk.StringVar()
         self.modelVar = tk.StringVar()
+        self.cleaned = tk.BooleanVar()
+        self.cleaned.set(False)
 
         self.frames={}
         #update frame page
-        for page in (StartPage, GraphPage, FilePage, AttPage, ModelPage):
+        for page in (StartPage, GraphPage, FilePage, AttPage, CleaningPage, ModelPage, ResultPage):
             frame= page(container, self)
             self.frames[page] = frame
             frame.grid(row=0, column=0, sticky="nsew")
@@ -177,6 +183,7 @@ class GraphPage(tk.Frame):
         """"""
 
 
+
 class FilePage(tk.Frame):
     def __init__(self, parent, controller):
         self.controller = controller
@@ -207,7 +214,6 @@ class AttPage(tk.Frame):
         self.controller = controller
 
         fi = self.controller.filename.get()
-
         if fi!='':
             fsize = getSizeOfFile(fi)
             if fsize >128000000:
@@ -216,7 +222,6 @@ class AttPage(tk.Frame):
             self.atts = Get_Attributes(fi)
             tk.Label(self, text=("""Select an attribute to predict, then attributes to train:"""), \
                     font=LARGE_FONT).pack(side='top',pady=10, padx=10, anchor='w')
-
 
             """ define listboxes  """
 
@@ -238,7 +243,7 @@ class AttPage(tk.Frame):
 
             """ end of listboxes"""
 
-            self.selectBut = tk.Button(self, text='Next', command=lambda : self.onSelect())
+            self.selectBut = tk.Button(self, text='Next', command=lambda: self.onSelect())
             self.selectBut.pack(side='left',pady=10, padx=10)
             self.resetBut = tk.Button(self, text='reset', command= lambda: self.grid_forget())
             self.resetBut.pack(anchor='nw')
@@ -254,10 +259,39 @@ class AttPage(tk.Frame):
             self.controller.xVar.set(attributes)
             self.controller.yVar.set(self.atts[ydx[0]])
             self.controller.show_frame(ModelPage)
-
-
         else:
             popupmsg("""Pick an attribute to continue.""" )
+
+
+class CleaningPage(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.controller = controller
+        ttk.Label(self, text='This will take some time base on the side of the data! ', font=LARGE_FONT).place(relx=.5, rely=.4, anchor='c')
+        self.progressbar = ttk.Progressbar(self, orient='horizontal', length=300, mode='indeterminate')
+        self.progressbar.place(relx=.5, rely=.5, anchor='c')
+        ttk.Button(self, text='Confirm and Run', command=self.apply).place(relx=.5, rely=.45, anchor='c')
+
+    def apply(self):
+        self.secondary_thread = threading.Thread(target=self.cleanProgress)
+        self.secondary_thread.start()
+        self.progressbar.start()
+        self.after(10, self.checkbar)
+
+    def checkbar(self):
+        if self.secondary_thread.is_alive() ==False:
+            self.progressbar.stop()
+            results = ResultPage(self, self.controller)
+            
+            # self.controller.show_frame(ResultPage).refresh()
+        else:
+            self.after(10, self.checkbar)
+
+    def cleanProgress(self):
+        time.sleep(3)
+        self.controller.cleaned.set(True)
+
+        # print Generate_Prediction(model, f, x, y)
 
 
 class ModelPage(tk.Frame):
@@ -271,32 +305,27 @@ class ModelPage(tk.Frame):
         for i in models:
             tk.Radiobutton(self, text=i, variable=self.controller.modelVar, value=i, command=self.controller.modelVar.set(i)).pack()
 
-        ttk.Button(self, text='Run', command=self.RunPrediction).pack()
+        ttk.Button(self, text='Next', command=lambda: self.controller.show_frame(CleaningPage)).pack()
 
 
-    def RunPrediction(self):
-        warning_frame=tk.Tk()
-        warning_frame.geometry('400x200')
-        warning_frame.wm_title('Warning')
-        ttk.Label(warning_frame, text="This will take some time to process base on the size of the data").pack()
-        ttk.Button(warning_frame, text="Run", command=lambda: self.run()).pack()
 
-    def run(self):
-        f = self.controller.filename.get()
-        model = self.controller.modelVar.get()
-        x = self.controller.xVar.get()
-        y = self.controller.yVar.get()
-        print Generate_Prediction(model, f, x, y)
 
 class ResultPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
-        # fi = self.controller.filename.get()
-        # model = self.controller.modelVar.get()
-        # y = self.controller.yVar.get()
-        # x = self.controller.xVar.get()
-        #
-        # print Clean_Data(fi, x)
+        self.controller=controller
+
+        if self.controller.cleaned.get():
+            fi = self.controller.filename.get()
+            model = self.controller.modelVar.get()
+            y = self.controller.yVar.get()
+            x = self.controller.xVar.get()
+
+            ttk.Label(self, text=fi, font=LARGE_FONT).pack()
+            ttk.Label(self, text=model, font=LARGE_FONT).pack()
+            ttk.Label(self, text=x, font=LARGE_FONT).pack()
+            ttk.Label(self, text=y, font=LARGE_FONT).pack()
+
 
 
 
