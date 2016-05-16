@@ -45,14 +45,14 @@ def animate(i):
 
 tutorialmessage = """Overview of the application:\n
 Our program works best for numerical data analysis.\n
-1: select dependent attribute and independent attributes.\n
-2: pick a predicting model and specify the number of predictions.\n
-3: run prediction \n
 Each predicting model works differently.\n
 XGBoost: accurate, moderate to long.\n
 DecisionTree: moderate.\n
-RandomForest: slow, memory eager.\n
-LinearRegression: fast, best for linear data.\n"""
+RandomForest: 10 trees, slow, requires RAM.\n
+LinearRegression: fast, best for linear data.\n
+1: select dependent attribute and independent attributes.\n
+2: pick a predicting model and specify the number of predictions.\n
+3: run prediction and see the results \n"""
 
 def tutorial():
     tut = tk.Tk()
@@ -103,7 +103,7 @@ class ForecastApp(tk.Tk):
         menubar.add_cascade(label="File", menu=filemenu)
 
         helpmenu = tk.Menu(menubar, tearoff=0)
-        helpmenu.add_command(label="Tutorial", command= tutorial)
+        helpmenu.add_command(label="About/How", command= tutorial)
         menubar.add_cascade(label="Help", menu=helpmenu)
 
         tk.Tk.config(self, menu=menubar)
@@ -151,6 +151,7 @@ class GraphPage(tk.Frame):
         self.controller = controller
         label = tk.Label(self, textvariable=self.controller.yVar, text=self.controller.yVar.get() , font=LARGE_FONT)
         label.pack(pady=10, padx=10)
+        ttk.Button(self, text="Go Back", command=lambda: controller.show_frame(ResultPage)).pack(anchor='nw')
         ttk.Button(self, text="Select Model", command=lambda: controller.show_frame(ModelPage)).pack(anchor='nw')
         ttk.Button(self, text="File Page", command=lambda: controller.show_frame(FilePage)).pack(anchor='nw')
 
@@ -321,7 +322,20 @@ class ResultPage(tk.Frame):
         self.controller=controller
         ttk.Button(self, text="See Graph", command=lambda: controller.show_frame(GraphPage)).pack(side='left', anchor='nw')
         ttk.Button(self, text="File Page", command=lambda: controller.show_frame(FilePage)).pack(side='left', anchor='nw')
-        ttk.Label(self, textvariable=self.controller.predictions, font=LARGE_FONT).pack()
+        ttk.Button(self, text="See Predictions", command=self.show_predictions).pack()
+
+    def show_predictions(self):
+        with open('predictions.txt', 'r') as pf:
+            r = pf.read()
+            self.scrollbar3 = tk.Scrollbar(self)
+            self.scrollbar3.pack(side='right', fill='y')
+            self.text = tk.Text(self, width=50, height=35, yscrollcommand=self.scrollbar3.set)
+            self.text.insert('end', r)
+            self.text.place(relx=.5, rely=.5, anchor='c')
+            self.scrollbar3.config(command= self.text.yview)
+
+
+
 
 
 app = ForecastApp()
