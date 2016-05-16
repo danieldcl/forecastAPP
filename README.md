@@ -31,3 +31,4 @@ Machine Learning Python Libraries:
 Graphics Library:
 
 	Tkinter
+	ttk
