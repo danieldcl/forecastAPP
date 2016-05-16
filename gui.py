@@ -20,12 +20,8 @@ import threading
 LARGE_FONT = ("Verdana", 12)
 NORM_FONT = ("Verdana", 10)
 SMALL_FONT = ("Verdana", 8)
-
-time_frame=7
-
 style.use("ggplot")
-f = Figure()
-a = f.add_subplot(111)
+
 
 
 """global funtions"""
@@ -51,7 +47,7 @@ def Get_Attributes(filename):
         with open(filename, 'r') as fi:
             return fi.next().strip('\n').split(',')
     except:
-        print "file not imported yet"
+        popupmsg("No such file.")
 
 def popupmsg(msg):
     popup = tk.Tk()
@@ -60,30 +56,6 @@ def popupmsg(msg):
     label = ttk.Label(popup, text=msg, font = NORM_FONT)
     label.pack(side="top", fill="x", pady=10)
     ttk.Button(popup, text="Close", command=popup.destroy).pack()
-
-
-
-def animate(i):
-    pullData = open("sampledata.txt", "r").read()
-    dataList = pullData.split('\n')
-    xList = []
-    xList = []
-    for eachLine in dataList:
-        if len(eachLine)>1:
-            x, y = eachLine.split(',')
-            xList.append(int(x))
-            xList.append(int(y))
-
-    a.clear() #this erases the graph data in a
-    a.plot(xList, xList, "#00A3E0", label="random data")
-    a.legend(bbox_to_anchor=(0,1.02), loc=3, ncol=2,borderaxespad=0)
-    temp_title="Temperary Title"
-    a.set_title(temp_title)
-
-
-
-
-
 
 
 """class definitions"""
@@ -148,14 +120,17 @@ class GraphPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
-        label = tk.Label(self, text="Graph Page!", font=LARGE_FONT)
+        label = tk.Label(self, textvariable=self.controller.yVar, text=self.controller.yVar.get() , font=LARGE_FONT)
         label.pack(pady=10, padx=10)
-        botton1 = ttk.Button(self, text="Home", command=lambda: controller.show_frame(StartPage))
+        botton1 = ttk.Button(self, text="Select Attributes", command=lambda: controller.show_frame(AttPage))
         botton1.pack()
+        self.f = Figure()
+        self.a = self.f.add_subplot(111)
+
 
         """important!! this is how the graph was drawn"""
 
-        canvas = FigureCanvasTkAgg(f,self)
+        canvas = FigureCanvasTkAgg(self.f,self)
         canvas.show()
         toolbar = NavigationToolbar2TkAgg(canvas, self)
         toolbar.update()
@@ -163,7 +138,24 @@ class GraphPage(tk.Frame):
         canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
         """"""
+        ani = animation.FuncAnimation(self.f, self.animate, interval=5000) #adding data to graph live
 
+    def animate(self, i):
+        pullData = open("sampledata.txt", "r").read()
+        dataList = pullData.split('\n')
+        xList = []
+        xList = []
+        for eachLine in dataList:
+            if len(eachLine)>1:
+                x, y = eachLine.split(',')
+                xList.append(int(x))
+                xList.append(int(y))
+
+        self.a.clear() #this erases the graph data in a
+        self.a.plot(xList, xList, "#00A3E0", label="random data")
+        self.a.legend(bbox_to_anchor=(0,1.02), loc=3, ncol=2,borderaxespad=0)
+        temp_title="Predictions"
+        self.a.set_title(temp_title)
 
 
 class FilePage(tk.Frame):
@@ -270,8 +262,9 @@ class CleaningPage(tk.Frame):
 
     def cleanProgress(self):
         try:
-            self.controller.predictions.set(Generate_Prediction(self.controller.modelVar.get(), \
-                self.controller.filename.get(), self.controller.xVar.get(), self.controller.yVar.get(), int(self.controller.num.get())))
+            predicted_results = Generate_Prediction(self.controller.modelVar.get(), \
+                self.controller.filename.get(), self.controller.xVar.get(), self.controller.yVar.get(), int(self.controller.num.get()))
+            self.controller.predictions.set(predicted_results.tolist())
         except IndexError:
             popupmsg("An error occurred during data cleaning.")
 
@@ -309,12 +302,15 @@ class ResultPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller=controller
+        ttk.Button(self, text="See Graph", command=lambda: controller.show_frame(GraphPage)).pack(side='left', anchor='nw')
+        ttk.Button(self, text="File Page", command=lambda: controller.show_frame(FilePage)).pack(side='left', anchor='nw')
         ttk.Label(self, textvariable=self.controller.predictions, font=LARGE_FONT).pack()
+
+
 
 
 
 
 app = ForecastApp()
 app.geometry("960x720")
-ani = animation.FuncAnimation(f, animate, interval=5000) #adding data to graph live
 app.mainloop()
