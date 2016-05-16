@@ -37,25 +37,6 @@ def tutorial():
     B1 = ttk.Button(tut, text="Close", command=tut.destroy)
     B1.pack()
 
-# def changeTimeFrame():
-#     global time_frame
-#     tfFrame = tk.Tk()
-#     tfFrame.geometry("640x360")
-#     tfFrame.wm_title("Number of days?")
-#     label = ttk.Label(tfFrame, text = "Enter the number of days to forecast")
-#     label.pack(side="top", fill="x", pady=10)
-#     ent = ttk.Entry(tfFrame)
-#     ent.insert(0, 7)
-#     ent.pack()
-#     ent.focus_set()
-#
-#     def callback():
-#         time_frame = int(ent.get())
-#         tfFrame.destroy()
-#
-#     b = ttk.Button(tfFrame, text="submit", width=10, command = callback)
-#     b.pack()
-#     tk.mainloop()
 
 def getSizeOfFile(filepath):
     # this shows the size of the datafile,
@@ -130,8 +111,9 @@ class ForecastApp(tk.Tk):
         self.yVar = tk.StringVar()
         self.xVar = tk.StringVar()
         self.modelVar = tk.StringVar()
-        self.cleaned = tk.BooleanVar()
-        self.cleaned.set(False)
+        self.predictions= tk.StringVar()
+        self.num = tk.StringVar()
+
 
         self.frames={}
         #update frame page
@@ -281,17 +263,17 @@ class CleaningPage(tk.Frame):
     def checkbar(self):
         if self.secondary_thread.is_alive() ==False:
             self.progressbar.stop()
-            results = ResultPage(self, self.controller)
-            
-            # self.controller.show_frame(ResultPage).refresh()
+            self.controller.show_frame(ResultPage)
+
         else:
             self.after(10, self.checkbar)
 
     def cleanProgress(self):
-        time.sleep(3)
-        self.controller.cleaned.set(True)
-
-        # print Generate_Prediction(model, f, x, y)
+        try:
+            self.controller.predictions.set(Generate_Prediction(self.controller.modelVar.get(), \
+                self.controller.filename.get(), self.controller.xVar.get(), self.controller.yVar.get(), int(self.controller.num.get())))
+        except IndexError:
+            popupmsg("An error occurred during data cleaning.")
 
 
 class ModelPage(tk.Frame):
@@ -304,9 +286,22 @@ class ModelPage(tk.Frame):
         models = ['xgboost', 'DecisionTree','RandomForest', 'LinearRegression']
         for i in models:
             tk.Radiobutton(self, text=i, variable=self.controller.modelVar, value=i, command=self.controller.modelVar.set(i)).pack()
+        ttk.Label(self, text="How Many Days/Predictions? ").pack()
 
-        ttk.Button(self, text='Next', command=lambda: self.controller.show_frame(CleaningPage)).pack()
+        self.controller.num.trace('w', self.validate_num)
+        ttk.Entry(self, textvariable=self.controller.num, width=5).pack()
 
+        self.ToCleanPage = ttk.Button(self, text='Next', state=tk.DISABLED, command=lambda: self.controller.show_frame(CleaningPage))
+        self.ToCleanPage.pack()
+
+    def validate_num(self, name, index, mode):
+        try:
+            n = self.controller.num.get()
+            n = int(n)
+            self.ToCleanPage.config(state=tk.NORMAL)
+            return True
+        except TypeError:
+            return False
 
 
 
@@ -314,18 +309,7 @@ class ResultPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller=controller
-
-        if self.controller.cleaned.get():
-            fi = self.controller.filename.get()
-            model = self.controller.modelVar.get()
-            y = self.controller.yVar.get()
-            x = self.controller.xVar.get()
-
-            ttk.Label(self, text=fi, font=LARGE_FONT).pack()
-            ttk.Label(self, text=model, font=LARGE_FONT).pack()
-            ttk.Label(self, text=x, font=LARGE_FONT).pack()
-            ttk.Label(self, text=y, font=LARGE_FONT).pack()
-
+        ttk.Label(self, textvariable=self.controller.predictions, font=LARGE_FONT).pack()
 
 
 
