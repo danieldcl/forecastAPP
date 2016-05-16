@@ -28,7 +28,7 @@ Machine Learning Python Libraries:
 	matplotlib
 	xgboost
 
-Graphics Library:
+Graphical Library:
 
 	Tkinter
 	ttk
