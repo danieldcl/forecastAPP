@@ -30,7 +30,7 @@ a = f.add_subplot(111)
 """global funtions"""
 
 def animate(i):
-    with open("predictions.txt", "r") as fi:
+    with open("predictions.txt", "a+") as fi:
         yList = []
         for eachLine in fi:
             yList.append(float(eachLine))
@@ -268,9 +268,9 @@ class CleaningPage(tk.Frame):
             predicted_results = Generate_Prediction(self.controller.modelVar.get(), \
                 self.controller.filename.get(), self.controller.xVar.get(), self.controller.yVar.get(), int(self.controller.num.get()))
 
-            with open('predictions.txt', 'w+') as fi:
+            with open('predictions.txt', 'w+') as fil:
                 for i in predicted_results.tolist():
-                    fi.write(str(i) + '\n')
+                    fil.write(str(i) + '\n')
 
             self.controller.predictions.set(predicted_results.tolist())
         except IndexError:
