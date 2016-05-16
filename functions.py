@@ -129,8 +129,8 @@ def xgboost_model(xdata, ydata, num):
     xgb_x_test = xgb.DMatrix(x_test)
     predictions = bst1.predict(xgb_x_test[-num:])
     return predictions
-
-if __name__=='__main__':
-    filename = 'citibike.csv'
-    fcolumns = ['the_geom','tripduration', 'starttime', 'stoptime']
-    print Generate_Prediction('LinearRegression', filename, str(fcolumns), 'tripduration', num=10)
+#
+# if __name__=='__main__':
+#     filename = 'citibike.csv'
+#     fcolumns = ['the_geom','tripduration', 'starttime', 'stoptime']
+#     print Generate_Prediction('LinearRegression', filename, str(fcolumns), 'tripduration', num=10)
