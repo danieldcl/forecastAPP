@@ -13,10 +13,11 @@ Overview of the application:
 
 	Our program works best for numerical data analysis. Predicting string data will produce numerical outputs.
 	Each predicting model works differently and fits different types of data.
-	XGBoost: This model trains the data 1000 times. Produces most accurate results in the available list of models, moderate run time.
-	RandomForest: By default the maximum tree depth is set to 5 to reduce runtime and 1000 estimator, less accurate and long run time, RAM consuming.
-	DecisionTree: max tree depth is set to 10, moderate speed and accuracy.
-	LinearRegression: fast, best for linear data.
+	
+	- XGBoost: This model trains the data 1000 times. Produces most accurate results in the available list of models, - moderate run time.
+	- RandomForest: By default the maximum tree depth is set to 5 to reduce runtime and 1000 estimator, less accurate and long run time, RAM consuming.
+	- DecisionTree: max tree depth is set to 10, moderate speed and accuracy.
+	- LinearRegression: fast, best for linear data.
 
 
 To use:
