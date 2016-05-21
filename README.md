@@ -5,7 +5,7 @@ Group Members:
   Dramane Diakite
   Moustafa Elshaabiny
   Olivier Dounla
-  
+
 Overview of the application:
 
 	Our program works best for numerical data analysis.
@@ -15,12 +15,17 @@ Overview of the application:
 	RandomForest: 10 trees, slow, requires RAM.
 	LinearRegression: fast, best for linear data.
 
-	1: select dependent attribute and independent attributes.
-	2: pick a predicting model and specify the number of predictions.
-	3: run prediction and see the results.
+
+To use:
+
+	1. import a data set, the application currently only takes small data sets, if the data set is large, consider the amount of RAM in your computer.
+
+	2. select dependent attribute and independent attributes.
+	3. pick a predicting model and specify the number of predictions.
+	4. run prediction and see the results.
 
 
-Machine Learning Python Libraries:
+Required Machine Learning Python Libraries:
 
 	scikit-learn
 	pandas
@@ -28,7 +33,7 @@ Machine Learning Python Libraries:
 	matplotlib
 	xgboost
 
-Graphical Library:
+Required Graphical Library:
 
 	Tkinter
 	ttk

@@ -1,3 +1,8 @@
+"""
+Functions were written by Dramane and Olivier
+Edited by Ding Chao Liao
+"""
+
 import numpy as np
 import pandas as pd
 import xgboost as xgb
@@ -19,7 +24,6 @@ def Clean_Data(filename, vars):
     na_values = ['NO CLUE', 'N/A', '']
     df = pd.read_csv(filename, na_values=na_values, parse_dates=True)
     data = df[vars]
-    # data = df[xvars]
     data = data.dropna(axis=1, how='all')
     cols = data.columns
     for i in cols:
@@ -33,48 +37,57 @@ def Clean_Data(filename, vars):
 
 
 def Generate_Prediction(model, filename, xvars, yvar, num):
+    # This function calls the predicting models to generate predictions
+
+    # convert xvars from string to list
     xvars = ast.literal_eval(xvars)
-    #the system generate the prediction result
     if yvar not in xvars:
         xvars.append(yvar)
+
+    # clean the data, filtering the columns that are selected by the user
     df = Clean_Data(filename, xvars)
     try:
         cols = list(df.columns)
         cols.remove(yvar)
         xdata = df[cols]
         ydata = df[yvar]
-
         model= model.lower()
+
+        # run predicting model accordingly
         if model== 'xgboost':
             return xgboost_model(xdata, ydata, num)
 
         elif model== 'randomforest':
-            m = RandomForestClassifier(n_estimators=10)
+            # RandomForestClassifier can take a lot of RAM base on the max_depth and the number of attributes selected in the data
+            m = RandomForestClassifier(n_estimators=1000, max_depth=5, n_jobs=-1)
             return Selected_Model(m, xdata, ydata, num)
 
         elif model== 'decisiontree':
-            m = DecisionTreeClassifier()
+            m = DecisionTreeClassifier(splitter='random', max_depth=10)
             return Selected_Model(m, xdata, ydata, num)
 
         elif model== 'linearregression':
             m = LinearRegression()
             return Selected_Model(m, xdata, ydata, num)
     except TypeError:
-        return 0
+        return -1
 
 
 def Selected_Model(model, xdata, ydata, num):
-    #Generic function for making a classification model and accessing performance:
-    x_train, x_test, y_train, y_test = cross_validation.train_test_split(
-        xdata, ydata, test_size=0.2, random_state=20)
+    #Generic function for making a classification model and accessing performance
 
-    #Fit the model:
+    # split the dataset into training and testing subsets, test size = 0.2 with random state 50.
+    x_train, x_test, y_train, y_test = cross_validation.train_test_split(
+        xdata, ydata, test_size=0.2, random_state=50)
+
+    #train the model:
     predicting_model = model.fit(x_train,y_train)
 
-    #Make predictions on training set:
+    #Make predictions on test set, using n from user input:
     predictions = predicting_model.predict(x_test[-num:])
 
-    return predictions
+    # return predictions and the real values a tuple
+    return (predictions.tolist(), y_test[-num:].values.tolist())
 
     # return metrics.classification_report(y_test, predictions)
     # accuracy = metrics.accuracy_score(y_test, predictions)
@@ -82,42 +95,28 @@ def Selected_Model(model, xdata, ydata, num):
 
 
 
-def ToWeight(y):
-    w = np.zeros(y.shape, dtype=float)
-    ind = y != 0
-    w[ind] = 1./(y[ind]**2)
-    return w
-def rmspe(yhat, y):
-    w = ToWeight(y)
-    rmspe = np.sqrt(np.mean( w * (y - yhat)**2 ))
-    return rmspe
-def rmspe_xg(yhat, y):
-    # y = y.values
-    y = y.get_label()
-    y = np.exp(y) - 1
-    yhat = np.exp(yhat) - 1
-    w = ToWeight(y)
-    rmspe = np.sqrt(np.mean(w * (y - yhat)**2))
-    return "rmspe", rmspe
+
 
 def xgboost_model(xdata, ydata, num):
-    #the system generate the prediction result
+    # the function uses xgboost to generate the predictions
 
-    #our system splits the data, and almost  one third are submit to the system as training data.
+    # splits the data, and almost  one third are submit to the system as training data.
     x_train, x_test, y_train, y_test = train_test_split(xdata, ydata,
-                                                    test_size=0.25, random_state=30)
+                                                    test_size=0.2, random_state=30)
 
     data = np.random.rand(5,10) # 5 entities, each contains 10 features
     label = np.random.randint(2, size=5) # binary target
+
+    # xgboost requires the data in matrix format
     dtrain = xgb.DMatrix( data, label=label)
-
-
     dtrain = xgb.DMatrix(x_train, y_train)
     dtest = xgb.DMatrix(x_test, y_test)
 
-    num_round = 500
+    # train the data for 1000 rounds to increase accuracy. the more rounds to train the more accurate
+    num_round = 1000
     evallist = [(dtrain, 'train'), (dtest, 'test')]
 
+    # list of parameters that xgboost model takes, objective is chose to be linear
     param = {'bst:max_depth':12,
          'bst:eta':0.0095,
          'subsample':0.8,
@@ -127,11 +126,18 @@ def xgboost_model(xdata, ydata, num):
          'nthread':6,
          'seed':42}
     plst = param.items()
+
+    # train the model
     bst1 = xgb.train(plst, dtrain, num_round, evallist, verbose_eval=50, early_stopping_rounds=200)
+
+    # convert test data into matrix
     xgb_x_test = xgb.DMatrix(x_test[-num:])
+
+    # make predictions
     predictions = bst1.predict(xgb_x_test)
-    return predictions
-#
+    return (predictions.tolist(), y_test[-num:].values.tolist())
+
+# This is for testing purposes
 # if __name__=='__main__':
 #     filename = 'citibike.csv'
 #     fcolumns = ['the_geom','tripduration', 'starttime', 'stoptime']
