@@ -1,7 +1,7 @@
 Kaggle Data Forecast Team
 
 Group Members:
-	
+
 	Ding Chao Liao
 	Dramane Diakite
   	Moustafa Elshaabiny
@@ -13,7 +13,7 @@ Overview of the application:
 
 	Our program works best for numerical data analysis. Predicting string data will produce numerical outputs.
 	Each predicting model works differently and fits different types of data.
-	
+
 	- XGBoost: This model trains the data 1000 times. Produces most accurate results in the available list of models, - moderate run time.
 	- RandomForest: By default the maximum tree depth is set to 5 to reduce runtime and 1000 estimator, less accurate and long run time, RAM consuming.
 	- DecisionTree: max tree depth is set to 10, moderate speed and accuracy.
@@ -21,6 +21,8 @@ Overview of the application:
 
 
 To use:
+	To run the apllication:
+	 			python gui.py
 
 	1. import a data set, the application currently takes small data sets, if the data set is big/large, consider the amount of RAM in your computer.
 	2. select dependent attribute (what you are predicting) and independent attributes (other than what you are predicting).
