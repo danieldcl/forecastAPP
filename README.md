@@ -21,6 +21,7 @@ Overview of the application:
 
 
 To use:
+
 	To run the apllication:
 	 in terminal:
 	 			python gui.py
