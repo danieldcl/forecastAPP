@@ -22,6 +22,7 @@ Overview of the application:
 
 To use:
 	To run the apllication:
+	 in terminal:
 	 			python gui.py
 
 	1. import a data set, the application currently takes small data sets, if the data set is big/large, consider the amount of RAM in your computer.
