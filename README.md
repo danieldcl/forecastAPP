@@ -1,9 +1,13 @@
 Kaggle Data Forecast Team
 
 Group Members:
-	Ding Chao Liao
+	
+  Ding Chao Liao
+  
   Dramane Diakite
+  
   Moustafa Elshaabiny
+  
   Olivier Dounla
 
 Overview of the application:
