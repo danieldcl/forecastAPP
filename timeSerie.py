@@ -1,3 +1,8 @@
+"""
+Written by Olivier Dounla
+
+"""
+
 import pandas as pd
 import numpy as np
 import matplotlib.pylab as plt
@@ -8,7 +13,7 @@ rcParams['figure.figsize'] = 15, 6
 data = pd.read_csv('C:/Users/olivier/Desktop/AirPassenger.csv')
 data.head()
 data.dtypes
-#The data contains a particular month and number of 
+#The data contains a particular month and number of
 #passergers travelling in that month But is still not read as a Ts  object as the data types are object and int In order to read the data as a time series, we have to pass special arguments to the read_csv command:
 dateparse = lambda dates: pd.datetime.strptime(dates,'%Y-%m')
 data = pd.read_csv('C:/Users/olivier/Desktop/AirPassenger.csv', parse_dates='Month', index_col='Month',date_parser=dateparse)
@@ -16,7 +21,7 @@ def test_stationarity(timeseries):
      #Determining rolling statistics
     rolmean = pd.rolling_mean(timeseries, window=12)
     rolstd = pd.rolling_std(timeseries, window=12)
-    
+
     #Plot rolling statistics:
     orig = plt.plot(timeseries, color='blue', label='original')
     mean = plt.plot(rolmean, color='red', label='Rolling Mean')
@@ -31,7 +36,7 @@ def test_stationarity(timeseries):
     dfoutput = pd.Series(dftest[0:4],index=['Test Statistic','p-value','#Lags Used','Number of Observation Used'])
     for key,value in dftest[4].items():
         dfoutput['Critical Value(%s)' %key]=value
-    return 
+    return
 
 #How to make a Time Series Stationry
 ts_log = np.log(ts)

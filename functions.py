@@ -1,6 +1,7 @@
 """
-Functions were written by Dramane and Olivier
-Edited by Ding Chao Liao
+Functions were written by Dramane Diakite and Olivier Dounla
+Edited and integrated by Ding Chao Liao
+
 """
 
 import numpy as np
