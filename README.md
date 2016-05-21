@@ -36,6 +36,7 @@ Required Machine Learning Python Libraries:
 	xgboost
 
  * xgboost installation differs in different machines, refer to the following link for instructions. https://www.kaggle.com/c/liberty-mutual-group-property-inspection-prediction/forums/t/15742/clear-instructions-to-install-xgboost-in-python
+ * other packages/libraries can be installed with pip or anaconda
 
 Required Graphical Library:
 
